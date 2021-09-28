@@ -52,12 +52,26 @@ python
 
 You can see more on the outputs stored in the `estimates` attribute [here](https://caiman.readthedocs.io/en/master/Getting_Started.html#result-interpretation).
 
-The spatial, temporal, and residual components are also stored independently as numpy data arrays. An array stored at path `arrayname` can be accessed with: 
+The spatial, temporal, and residual components are also stored independently as numpy data arrays.
+
+The spatial component is special. Assuming it is stored as `arrayname`, it needs to be treated like so: 
 
 ```
 python
 >>> import numpy as np
->>> A = np.load("arrayname",allow_pickle=True)["arr_0"]
+>>> A = np.load("arrayname",allow_pickle=True)["arr_0"].item().toarray() # this generates a matrix of shape (height*width,components)
+>>> A_array = A.reshape((height,width,components),order = "F") # a stack of images
+>>> A_img = np.sum(A_array,axis = -1) ## create a single image of spatial componenets
+
+```
+
+All other components stored at path `arrayname` can be accessed with: 
+
+```
+python
+>>> import numpy as np
+>>> B = np.load("arrayname",allow_pickle=True)["arr_0"].toarray() # this generates a matrix of shape (height*width,components)
+
 ```
 
 The results are then a numpy array. 
@@ -70,9 +84,12 @@ Given an array `A` (of shape HxW or HxWx3), you can plot it as follows:
 ```
 .... 
 >>> estimates = trainedmodel.estimates
->>> A = estimates.A
+>>> A = estimates.A.item().toarray()
+>>> A_array = A.reshape((height,width,components),order = "F") # a stack of images
+>>> A_img = np.sum(A_array,axis = -1) ## create a single image of spatial componenets
+
 >>> import matplotlib.pyplot as plt
->>> plt.imshow(A) 
+>>> plt.imshow(A_img) 
 >>> plt.savefig("name_of_figure.png") ## will save image to a separate file. 
 ```
 
